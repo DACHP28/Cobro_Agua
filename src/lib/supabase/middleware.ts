@@ -27,27 +27,8 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // refresca el token de sesion si expiro
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const path = request.nextUrl.pathname;
-  
-  // Proteger todas las rutas excepto login, api, assets estaticos, etc.
-  // Next.js middleware by default runs on everything, but we filter in matcher.
-  if (!user && path !== '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Si esta logueado y va a login, mandarlo al dashboard
-  if (user && path === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
-    return NextResponse.redirect(url)
-  }
+  // Refresca el token de sesion si existe
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }
