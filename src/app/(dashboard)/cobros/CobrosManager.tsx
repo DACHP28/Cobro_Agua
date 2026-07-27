@@ -107,8 +107,11 @@ export default function CobrosManager({
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Centro Único de Pagos</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Centro Único de Pagos</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Ventanilla oficial de recaudación, facturación de consumos e impresión de comprobantes.</p>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -139,7 +142,7 @@ export default function CobrosManager({
 
       {/* VISTA 1: Estado de Cuenta (Servicios y Multas) */}
       {activeTab === 'estado_cuenta' && (
-        <div className="table-container">
+        <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>
@@ -154,7 +157,11 @@ export default function CobrosManager({
             <tbody>
               {deudas.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No hay facturas ni multas registradas.</td>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💳</div>
+                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', display: 'block' }}>Al día en Cobros y Facturación</strong>
+                    <span style={{ fontSize: '0.9rem' }}>No hay cuentas pendientes ni multas morosas en este momento.</span>
+                  </td>
                 </tr>
               ) : (
                 deudas.map((deuda, idx) => (
@@ -215,7 +222,7 @@ export default function CobrosManager({
 
       {/* VISTA 2: Generar Cobros */}
       {activeTab === 'generar' && (
-        <div className="table-container">
+        <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
           <table className="table">
             <thead>
               <tr>
@@ -229,7 +236,11 @@ export default function CobrosManager({
             <tbody>
               {consumosPendientes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>No hay lecturas pendientes por cobrar.</td>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>✨</div>
+                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', display: 'block' }}>Sin Lecturas Pendientes de Emitir</strong>
+                    <span style={{ fontSize: '0.9rem' }}>Todas las lecturas recibidas han sido convertidas en recibos de cobro exitosamente.</span>
+                  </td>
                 </tr>
               ) : (
                 consumosPendientes.map(consumo => {

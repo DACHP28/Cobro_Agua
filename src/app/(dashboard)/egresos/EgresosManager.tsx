@@ -52,24 +52,24 @@ export default function EgresosManager({
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Gastos Operativos y Egresos</h2>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Historial de salidas de dinero de la caja.</p>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Gastos Operativos y Egresos</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Historial de salidas de dinero de la caja de ventanilla.</p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Total Histórico Egresos</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--danger-color)' }}>
+        <div style={{ textAlign: 'right', padding: '0.75rem 1.25rem', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Total Histórico Egresos</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--danger-color)' }}>
             ${totalGastos.toFixed(2)}
           </div>
         </div>
       </div>
 
       <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-        <button className="btn btn-danger" onClick={() => setShowModal(true)}>+ Registrar Salida de Dinero</button>
+        <button className="btn btn-danger" style={{ padding: '0.65rem 1.25rem', fontSize: '0.95rem', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.25)', borderRadius: '30px', backgroundColor: 'var(--danger-color)', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={() => setShowModal(true)}>+ Registrar Salida de Dinero</button>
       </div>
 
-      <div className="table-container">
+      <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
         <table className="table">
           <thead>
             <tr>

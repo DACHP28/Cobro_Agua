@@ -81,9 +81,12 @@ export default function MultasManager({ initialMultas, clientes, initialConfig }
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Gestión de Multas y Recargos</h2>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Registrar Multa Manual</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Gestión de Multas y Recargos</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Administración de sanciones por ausentismo, daños a bienes y recargos automáticos por mora.</p>
+        </div>
+        <button className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.95rem', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)', borderRadius: '30px', fontWeight: 600 }} onClick={() => setShowModal(true)}>+ Registrar Multa Manual</button>
       </div>
 
       {/* Panel de Configuración y Auditoría Automática */}
@@ -133,7 +136,7 @@ export default function MultasManager({ initialMultas, clientes, initialConfig }
         </div>
       </div>
 
-      <div className="table-container">
+      <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
         <table className="table">
           <thead>
             <tr>

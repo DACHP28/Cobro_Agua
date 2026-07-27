@@ -66,15 +66,15 @@ export default function UsuariosManager({ usuarios }: { usuarios: Usuario[] }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Gestión de Personal y Accesos</h2>
-          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Administra los roles y usuarios que acceden al sistema.</p>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Gestión de Personal y Accesos</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Administra los roles y usuarios que acceden al sistema.</p>
         </div>
-        <button className="btn btn-primary" onClick={handleOpenCreate}>+ Nuevo Empleado</button>
+        <button className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.95rem', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)', borderRadius: '30px' }} onClick={handleOpenCreate}>+ Nuevo Empleado</button>
       </div>
 
-      <div className="table-container">
+      <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
         <table className="table">
           <thead>
             <tr>

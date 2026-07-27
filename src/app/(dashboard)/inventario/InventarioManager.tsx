@@ -75,8 +75,11 @@ export default function InventarioManager({
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Inventario y Proveedores</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Inventario y Proveedores</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Gestión integral de bodega, kardex de movimientos y catálogo de proveedores.</p>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -119,9 +122,9 @@ export default function InventarioManager({
       {activeTab === 'catalogo' && (
         <>
           <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-            <button className="btn btn-primary" onClick={() => setShowProdModal(true)}>+ Nuevo Producto</button>
+            <button className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.95rem', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)', borderRadius: '30px' }} onClick={() => setShowProdModal(true)}>+ Nuevo Producto</button>
           </div>
-          <div className="table-container">
+          <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
             <table className="table">
               <thead>
                 <tr>
@@ -134,7 +137,16 @@ export default function InventarioManager({
                 </tr>
               </thead>
               <tbody>
-                {inventario.map(prod => {
+                {inventario.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📦</div>
+                      <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', display: 'block' }}>Catálogo de Bodega en Cero</strong>
+                      <span style={{ fontSize: '0.9rem' }}>Listo para producción sin datos de prueba. Haz clic en &quot;+ Nuevo Producto&quot; para registrar material.</span>
+                    </td>
+                  </tr>
+                ) : (
+                inventario.map(prod => {
                   const bajoStock = prod.stock_actual <= prod.stock_minimo;
                   return (
                     <tr key={prod.id} style={{ backgroundColor: bajoStock ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
@@ -162,7 +174,7 @@ export default function InventarioManager({
                       </td>
                     </tr>
                   )
-                })}
+                }))}
               </tbody>
             </table>
           </div>

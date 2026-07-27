@@ -27,9 +27,12 @@ export default function DashboardView({ metrics }: { metrics: DashboardMetrics }
         }
       `}} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Dashboard</h2>
-        <button className="btn btn-outline no-print" onClick={handlePrint}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>Dashboard Ejecutivo</h2>
+          <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Resumen financiero en tiempo real, balance de caja fuerte y métricas clave de recaudación.</p>
+        </div>
+        <button className="btn btn-outline no-print" style={{ padding: '0.65rem 1.25rem', fontSize: '0.95rem', borderRadius: '30px', fontWeight: 600, backgroundColor: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }} onClick={handlePrint}>
           🖨️ Imprimir Reporte de Caja
         </button>
       </div>
