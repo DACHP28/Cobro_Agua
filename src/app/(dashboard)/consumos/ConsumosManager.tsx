@@ -334,11 +334,11 @@ export default function ConsumosManager({
                   style={{ fontWeight: 700, color: 'var(--primary-color)', textTransform: 'uppercase' }}
                 >
                   {Array.from(new Set([
-                    'DOMESTICO', 'RESIDENCIAL', 'COMERCIAL', 'INDUSTRIAL', 'RIEGO', 'PUBLICO', 'COMUNITARIO', 'OTRO',
+                    'DOMESTICO', 'COMERCIAL', 'INDUSTRIAL', 'RIEGO', 'PUBLICO', 'COMUNITARIO', 'OTRO',
                     ...medidoresActivos.map(m => String(m.tipo_servicio || 'DOMESTICO').toUpperCase().trim())
-                  ])).sort().map(tipo => (
+                  ])).filter(t => t !== 'RESIDENCIAL').sort().map(tipo => (
                     <option key={tipo} value={tipo}>
-                      🏷️ {tipo}
+                      🏷️ {tipo === 'DOMESTICO' ? 'DOMESTICO (RESIDENCIAL)' : tipo}
                     </option>
                   ))}
                 </select>

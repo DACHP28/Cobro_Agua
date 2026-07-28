@@ -89,7 +89,6 @@ export default function FormMedidor({ medidorInicial, clientesActivos, onClose }
               <label className="form-label">Tipo de Servicio</label>
               <select name="tipo_servicio" className="form-control" defaultValue={medidorInicial?.tipo_servicio || 'Domestico'}>
                 <option value="Domestico">Domestico (Residencial)</option>
-                <option value="Residencial">Residencial</option>
                 <option value="Riego">Riego (Agrícola)</option>
                 <option value="Comercial">Comercial / Negocios</option>
                 <option value="Industrial">Industrial</option>
