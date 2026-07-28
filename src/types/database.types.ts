@@ -234,3 +234,26 @@ export interface UsuarioInput {
   role: string;
   is_active?: boolean;
 }
+
+export interface Tarifa {
+  id: number;
+  tipo_medidor: string;
+  tarifa_base: number;
+  tarifa_excedente: number;
+  unidad_excedente: number; // Límite máximo de m3 incluidos
+  vigencia_desde?: string | null;
+  vigencia_hasta?: string | null;
+  activa: boolean;
+  observaciones?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TarifaInput {
+  tipo_medidor: string;
+  tarifa_base: number;
+  tarifa_excedente: number;
+  unidad_excedente: number;
+  activa?: boolean;
+  observaciones?: string | null;
+}

@@ -1,5 +1,6 @@
 import { getCobros, getConsumosPendientes } from './actions';
 import { getMultas } from '../multas/actions';
+import { getTarifas } from '../consumos/actions';
 import CobrosManager from './CobrosManager';
 
 export const metadata = {
@@ -7,15 +8,16 @@ export const metadata = {
 }
 
 export default async function CobrosPage() {
-  const [cobros, consumosPendientes, multas] = await Promise.all([
+  const [cobros, consumosPendientes, multas, tarifas] = await Promise.all([
     getCobros(),
     getConsumosPendientes(),
-    getMultas()
+    getMultas(),
+    getTarifas()
   ]);
 
   return (
     <div>
-      <CobrosManager initialCobros={cobros} consumosPendientes={consumosPendientes} initialMultas={multas} />
+      <CobrosManager initialCobros={cobros} consumosPendientes={consumosPendientes} initialMultas={multas} initialTarifas={tarifas} />
     </div>
   );
 }

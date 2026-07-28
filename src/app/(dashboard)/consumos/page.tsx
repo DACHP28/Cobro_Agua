@@ -1,4 +1,4 @@
-import { getConsumos, getMedidoresActivos } from './actions';
+import { getConsumos, getMedidoresActivos, getTarifas } from './actions';
 import ConsumosManager from './ConsumosManager';
 
 export const metadata = {
@@ -6,14 +6,15 @@ export const metadata = {
 }
 
 export default async function ConsumosPage() {
-  const [consumos, medidoresActivos] = await Promise.all([
+  const [consumos, medidoresActivos, tarifas] = await Promise.all([
     getConsumos(),
-    getMedidoresActivos()
+    getMedidoresActivos(),
+    getTarifas()
   ]);
 
   return (
     <div>
-      <ConsumosManager initialConsumos={consumos} medidoresActivos={medidoresActivos} />
+      <ConsumosManager initialConsumos={consumos} medidoresActivos={medidoresActivos} initialTarifas={tarifas} />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react';
-import { Cobro, Consumo, Multa } from '@/types/database.types';
+import { Cobro, Consumo, Multa, Tarifa } from '@/types/database.types';
 import { generarCobro, registrarPago } from './actions';
 import { registrarPagoMulta } from '../multas/actions';
+import FacturaImprimable from './FacturaImprimable';
 
 interface DeudaUnificada {
   tipo: 'servicio' | 'multa';
@@ -21,11 +22,13 @@ interface DeudaUnificada {
 export default function CobrosManager({ 
   initialCobros, 
   consumosPendientes,
-  initialMultas 
+  initialMultas,
+  initialTarifas = [] 
 }: { 
   initialCobros: Cobro[], 
   consumosPendientes: Consumo[],
-  initialMultas: Multa[]
+  initialMultas: Multa[],
+  initialTarifas?: Tarifa[] 
 }) {
   const [activeTab, setActiveTab] = useState<'estado_cuenta' | 'generar'>('estado_cuenta');
   
@@ -65,14 +68,15 @@ export default function CobrosManager({
     }))
   ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
-  const handleGenerarCobro = async (consumo: Consumo) => {
-    if (!confirm(`¿Generar factura por ${consumo.consumo_calculado} m³ para el mes de ${consumo.mes_anio}?`)) return;
+  const handleGenerarCobro = async (consumo: Consumo, montoTotal?: number, desglose?: string) => {
+    const textoConfirm = montoTotal ? `¿Generar factura por $${montoTotal.toFixed(2)} (${desglose}) para el mes de ${consumo.mes_anio}?` : `¿Generar factura para el mes de ${consumo.mes_anio}?`;
+    if (!confirm(textoConfirm)) return;
     
     setGenerando(consumo.id);
     // @ts-ignore
     const clienteId = consumo.medidores?.clientes?.id;
     if (clienteId) {
-      await generarCobro(consumo.id, clienteId as number, consumo.consumo_calculado);
+      await generarCobro(consumo.id, clienteId as number, consumo.consumo_calculado, montoTotal);
     }
     setGenerando(null);
     setActiveTab('estado_cuenta');
@@ -229,7 +233,7 @@ export default function CobrosManager({
                 <th>Período</th>
                 <th>Cliente / Medidor</th>
                 <th>Consumo Calculado</th>
-                <th>Tarifa Fija</th>
+                <th>Tarifa Aplicada (Base + Excedente)</th>
                 <th>Acción</th>
               </tr>
             </thead>
@@ -248,28 +252,51 @@ export default function CobrosManager({
                   const cli = consumo.medidores?.clientes;
                   // @ts-ignore
                   const med = consumo.medidores?.numero;
-                  const tarifaEstimada = (consumo.consumo_calculado * 0.50).toFixed(2);
+                  // @ts-ignore
+                  const tipoServicio = consumo.medidores?.tipo_servicio || 'RESIDENCIAL';
+
+                  const tarifa = initialTarifas.find(t => t.tipo_medidor.toUpperCase().trim() === String(tipoServicio).toUpperCase().trim());
+                  let montoEstimado = Number((consumo.consumo_calculado * 0.50).toFixed(2));
+                  let desglose = `${consumo.consumo_calculado} m³ x $0.50 (tarifa básica defecto)`;
+
+                  if (tarifa) {
+                    if (consumo.consumo_calculado <= tarifa.unidad_excedente) {
+                      montoEstimado = Number(tarifa.tarifa_base);
+                      desglose = `Base ${tarifa.tipo_medidor}: incluye hasta ${tarifa.unidad_excedente} m³`;
+                    } else {
+                      const excedente = consumo.consumo_calculado - tarifa.unidad_excedente;
+                      const costoExtra = excedente * Number(tarifa.tarifa_excedente);
+                      montoEstimado = Number(Number(tarifa.tarifa_base) + costoExtra);
+                      desglose = `Base ($${Number(tarifa.tarifa_base).toFixed(2)}) + ${excedente} m³ extra ($${costoExtra.toFixed(2)})`;
+                    }
+                  }
 
                   return (
                     <tr key={consumo.id}>
-                      <td><strong>{consumo.mes_anio}</strong></td>
+                      <td><strong style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{consumo.mes_anio}</strong></td>
                       <td>
-                        {cli?.nombre} {cli?.apellido}<br/>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Medidor: {med}</span>
+                        <strong>{cli?.nombre} {cli?.apellido}</strong><br/>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Medidor: <strong>{med}</strong> (<span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>{tipoServicio}</span>)</span>
                       </td>
-                      <td>{consumo.consumo_calculado} m³</td>
                       <td>
-                        <span style={{ fontWeight: 'bold', color: 'var(--success-color)' }}>
-                          ${tarifaEstimada}
-                        </span> <span style={{ fontSize: '0.8rem' }}>(0.50 x m³)</span>
+                        <span style={{ fontSize: '1.15rem', fontWeight: 800 }}>{consumo.consumo_calculado} m³</span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 800, color: 'var(--success-color)', fontSize: '1.2rem' }}>
+                          ${montoEstimado.toFixed(2)}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.15rem', maxWidth: '240px' }}>
+                          {desglose}
+                        </div>
                       </td>
                       <td>
                         <button 
-                          className="btn btn-outline" 
-                          onClick={() => handleGenerarCobro(consumo)}
+                          className="btn btn-primary" 
+                          style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem', borderRadius: '30px', fontWeight: 600, boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)' }}
+                          onClick={() => handleGenerarCobro(consumo, montoEstimado, desglose)}
                           disabled={generando === consumo.id}
                         >
-                          {generando === consumo.id ? 'Generando...' : 'Generar Factura'}
+                          {generando === consumo.id ? 'Facturando...' : 'Generar Factura'}
                         </button>
                       </td>
                     </tr>

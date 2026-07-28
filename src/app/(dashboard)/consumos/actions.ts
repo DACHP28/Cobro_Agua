@@ -2,7 +2,84 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Consumo, ConsumoInput, Medidor } from '@/types/database.types'
+import { Consumo, ConsumoInput, Medidor, Tarifa, TarifaInput } from '@/types/database.types'
+
+export async function getTarifas(): Promise<Tarifa[]> {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('tarifas')
+    .select('*')
+    .order('tipo_medidor', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching tarifas:', error)
+    return []
+  }
+
+  // Si no existen tarifas creadas aún en BD, inicializar las 4 escalas básicas para ayudar al usuario
+  if (!data || data.length === 0) {
+    const tarifasIniciales = [
+      { tipo_medidor: 'RESIDENCIAL', tarifa_base: 3.00, unidad_excedente: 15, tarifa_excedente: 0.50, activa: true, observaciones: 'Consumo básico residencial hasta 15 m3' },
+      { tipo_medidor: 'COMERCIAL', tarifa_base: 7.00, unidad_excedente: 25, tarifa_excedente: 0.80, activa: true, observaciones: 'Locales, tiendas y comercios' },
+      { tipo_medidor: 'INDUSTRIAL', tarifa_base: 15.00, unidad_excedente: 50, tarifa_excedente: 1.20, activa: true, observaciones: 'Talleres, fábricas y alto consumo' },
+      { tipo_medidor: 'PUBLICO', tarifa_base: 4.00, unidad_excedente: 20, tarifa_excedente: 0.50, activa: true, observaciones: 'Instituciones y servicios comunitarios' },
+    ];
+    
+    await supabase.from('tarifas').insert(tarifasIniciales);
+    
+    const { data: newData } = await supabase.from('tarifas').select('*').order('tipo_medidor', { ascending: true });
+    return (newData || []) as unknown as Tarifa[];
+  }
+
+  return data as unknown as Tarifa[]
+}
+
+export async function createOrUpdateTarifa(id: number | null, input: TarifaInput): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  
+  if (id) {
+    const { error } = await supabase
+      .from('tarifas')
+      .update({
+        tipo_medidor: input.tipo_medidor.toUpperCase().trim(),
+        tarifa_base: input.tarifa_base,
+        unidad_excedente: input.unidad_excedente,
+        tarifa_excedente: input.tarifa_excedente,
+        observaciones: input.observaciones || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase
+      .from('tarifas')
+      .insert({
+        tipo_medidor: input.tipo_medidor.toUpperCase().trim(),
+        tarifa_base: input.tarifa_base,
+        unidad_excedente: input.unidad_excedente,
+        tarifa_excedente: input.tarifa_excedente,
+        observaciones: input.observaciones || null,
+        activa: true
+      });
+
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath('/consumos')
+  revalidatePath('/cobros')
+  return { error: null }
+}
+
+export async function deleteTarifa(id: number): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('tarifas').delete().eq('id', id);
+  if (error) return { error: error.message };
+  revalidatePath('/consumos')
+  revalidatePath('/cobros')
+  return { error: null }
+}
 
 export async function getConsumos(): Promise<Consumo[]> {
   const supabase = await createClient()
@@ -11,7 +88,7 @@ export async function getConsumos(): Promise<Consumo[]> {
     .from('consumos')
     .select(`
       *,
-      medidores:medidor_id (id, numero, clientes:cliente_id (id, nombre, apellido))
+      medidores:medidor_id (id, numero, tipo_servicio, clientes:cliente_id (id, nombre, apellido))
     `)
     .order('fecha_lectura', { ascending: false })
 

@@ -34,7 +34,7 @@ export async function getConsumosPendientes(): Promise<Consumo[]> {
     .select(`
       *,
       medidores:medidor_id (
-        id, numero, 
+        id, numero, tipo_servicio, 
         clientes:cliente_id (id, nombre, apellido, cedula)
       )
     `)
@@ -49,10 +49,15 @@ export async function getConsumosPendientes(): Promise<Consumo[]> {
   return data as unknown as Consumo[]
 }
 
-export async function generarCobro(consumoId: number, clienteId: number, metrosConsumidos: number): Promise<{ error: string | null }> {
+export async function generarCobro(consumoId: number, clienteId: number, metrosConsumidos: number, montoCustom?: number): Promise<{ error: string | null }> {
   const supabase = await createClient()
   
-  const montoSubtotal = parseFloat((metrosConsumidos * TARIFA_POR_M3).toFixed(2));
+  let montoSubtotal = 0;
+  if (montoCustom !== undefined && !isNaN(montoCustom) && montoCustom > 0) {
+    montoSubtotal = parseFloat(Number(montoCustom).toFixed(2));
+  } else {
+    montoSubtotal = parseFloat((metrosConsumidos * TARIFA_POR_M3).toFixed(2));
+  }
   const montoTotal = montoSubtotal; // Asumiendo 0 impuestos por ahora para el servicio básico de agua
 
   // Iniciar una transacción simulada (hacer insert del cobro y update del consumo)
