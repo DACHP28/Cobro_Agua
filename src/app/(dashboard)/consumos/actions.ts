@@ -20,10 +20,12 @@ export async function getTarifas(): Promise<Tarifa[]> {
   // Si no existen tarifas creadas aún en BD, inicializar las 4 escalas básicas para ayudar al usuario
   if (!data || data.length === 0) {
     const tarifasIniciales = [
-      { tipo_medidor: 'RESIDENCIAL', tarifa_base: 3.00, unidad_excedente: 15, tarifa_excedente: 0.50, activa: true, observaciones: 'Consumo básico residencial hasta 15 m3' },
-      { tipo_medidor: 'COMERCIAL', tarifa_base: 7.00, unidad_excedente: 25, tarifa_excedente: 0.80, activa: true, observaciones: 'Locales, tiendas y comercios' },
-      { tipo_medidor: 'INDUSTRIAL', tarifa_base: 15.00, unidad_excedente: 50, tarifa_excedente: 1.20, activa: true, observaciones: 'Talleres, fábricas y alto consumo' },
-      { tipo_medidor: 'PUBLICO', tarifa_base: 4.00, unidad_excedente: 20, tarifa_excedente: 0.50, activa: true, observaciones: 'Instituciones y servicios comunitarios' },
+      { tipo_medidor: 'DOMESTICO', tarifa_base: 3.00, unidad_excedente: 15, tarifa_excedente: 0.50, activa: true, observaciones: 'Consumo básico doméstico y domicilios particulares' },
+      { tipo_medidor: 'RESIDENCIAL', tarifa_base: 3.00, unidad_excedente: 15, tarifa_excedente: 0.50, activa: true, observaciones: 'Consumo residencial estándar' },
+      { tipo_medidor: 'RIEGO', tarifa_base: 2.50, unidad_excedente: 30, tarifa_excedente: 0.40, activa: true, observaciones: 'Uso agrícola y riego de cultivos' },
+      { tipo_medidor: 'COMERCIAL', tarifa_base: 7.00, unidad_excedente: 25, tarifa_excedente: 0.80, activa: true, observaciones: 'Locales, tiendas y negocios comerciales' },
+      { tipo_medidor: 'INDUSTRIAL', tarifa_base: 15.00, unidad_excedente: 50, tarifa_excedente: 1.20, activa: true, observaciones: 'Talleres, fábricas y alto consumo industrial' },
+      { tipo_medidor: 'PUBLICO', tarifa_base: 4.00, unidad_excedente: 20, tarifa_excedente: 0.50, activa: true, observaciones: 'Instituciones educativas y servicios comunitarios' },
     ];
     
     await supabase.from('tarifas').insert(tarifasIniciales);

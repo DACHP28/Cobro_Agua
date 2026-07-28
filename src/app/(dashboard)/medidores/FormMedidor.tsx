@@ -87,10 +87,14 @@ export default function FormMedidor({ medidorInicial, clientesActivos, onClose }
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">Tipo de Servicio</label>
-              <select name="tipo_servicio" className="form-control" defaultValue={medidorInicial?.tipo_servicio || 'Residencial'}>
+              <select name="tipo_servicio" className="form-control" defaultValue={medidorInicial?.tipo_servicio || 'Domestico'}>
+                <option value="Domestico">Domestico (Residencial)</option>
                 <option value="Residencial">Residencial</option>
-                <option value="Riego">Riego</option>
-                <option value="Comercial">Comercial</option>
+                <option value="Riego">Riego (Agrícola)</option>
+                <option value="Comercial">Comercial / Negocios</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Publico">Publico / Institucional</option>
+                <option value="Comunitario">Comunitario</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>

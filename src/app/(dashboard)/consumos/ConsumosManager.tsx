@@ -326,18 +326,24 @@ export default function ConsumosManager({
             <form onSubmit={handleSaveTarifa}>
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 700 }}>Tipo de Medidor / Categoría de Servicio</label>
-                <input 
-                  type="text" 
+                <select 
                   name="tipo_medidor" 
                   className="form-control" 
                   required 
-                  defaultValue={editingTarifa?.tipo_medidor || ''} 
-                  placeholder="Ej. RESIDENCIAL, COMERCIAL, INDUSTRIAL, PUBLICO" 
-                  style={{ textTransform: 'uppercase', fontWeight: 600 }}
-                  readOnly={!!editingTarifa && ['RESIDENCIAL', 'COMERCIAL', 'INDUSTRIAL', 'PUBLICO'].includes(editingTarifa.tipo_medidor)}
-                />
+                  defaultValue={editingTarifa ? editingTarifa.tipo_medidor.toUpperCase().trim() : 'DOMESTICO'} 
+                  style={{ fontWeight: 700, color: 'var(--primary-color)', textTransform: 'uppercase' }}
+                >
+                  {Array.from(new Set([
+                    'DOMESTICO', 'RESIDENCIAL', 'COMERCIAL', 'INDUSTRIAL', 'RIEGO', 'PUBLICO', 'COMUNITARIO', 'OTRO',
+                    ...medidoresActivos.map(m => String(m.tipo_servicio || 'DOMESTICO').toUpperCase().trim())
+                  ])).sort().map(tipo => (
+                    <option key={tipo} value={tipo}>
+                      🏷️ {tipo}
+                    </option>
+                  ))}
+                </select>
                 <small style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                  Debe coincidir con el campo &quot;Tipo de Servicio&quot; asignado en la ficha de tus medidores.
+                  Selecciona del menú desplegable el Tipo de Medidor al cual aplicarás esta tarifa y sus límites.
                 </small>
               </div>
 
