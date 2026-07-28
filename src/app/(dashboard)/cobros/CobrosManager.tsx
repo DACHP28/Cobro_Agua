@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Cobro, Consumo, Multa, Tarifa } from '@/types/database.types';
 import { generarCobro, registrarPago } from './actions';
 import { registrarPagoMulta } from '../multas/actions';
-import FacturaImprimable from './FacturaImprimable';
 
 interface DeudaUnificada {
   tipo: 'servicio' | 'multa';
