@@ -91,6 +91,13 @@ export default function CobrosManager({
     }))
   ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
+  const historialPagados = deudas.filter(d => d.estado === 'pagado');
+  const listaPagadosFiltrada = historialPagados.filter(d => {
+    if (!busqueda) return true;
+    const q = busqueda.toLowerCase().trim();
+    return d.cliente_nombre.toLowerCase().includes(q) || d.cliente_cedula.toLowerCase().includes(q) || d.concepto.toLowerCase().includes(q);
+  });
+
   // AGRUPAR DEUDAS PENDIENTES POR CLIENTE PARA VENTANILLA
   const clientesAgrupadosMap = new Map<number, {
     cliente_id: number;
@@ -246,7 +253,7 @@ export default function CobrosManager({
           📋 Generar Cobros por Agua ({consumosPendientes.length})
         </button>
         <button 
-          onClick={() => setActiveTab('estado_cuenta')}
+          onClick={() => { setActiveTab('estado_cuenta'); setBusqueda(''); }}
           style={{ 
             background: 'none', border: 'none', fontSize: '1.02rem', cursor: 'pointer', padding: '0.6rem 1.2rem',
             fontWeight: activeTab === 'estado_cuenta' ? '800' : '500',
@@ -255,7 +262,7 @@ export default function CobrosManager({
             display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap'
           }}
         >
-          📜 Historial y Desglose Completo ({deudas.length})
+          📜 Historial de Recibos Pagados ({historialPagados.length})
         </button>
       </div>
 
@@ -441,84 +448,104 @@ export default function CobrosManager({
         </div>
       )}
 
-      {/* VISTA 3: Estado de Cuenta Individual / Historial Desglosado */}
+      {/* VISTA 3: Historial y Archivo de Recibos emitidos (Solo Pagados) */}
       {activeTab === 'estado_cuenta' && (
-        <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Fecha Emisión</th>
-                <th>Cliente</th>
-                <th>Concepto</th>
-                <th>Monto ($)</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deudas.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-secondary)' }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💳</div>
-                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-primary)', display: 'block' }}>Al día en Cobros y Facturación</strong>
-                    <span style={{ fontSize: '0.9rem' }}>No hay cuentas pendientes ni multas en este momento.</span>
-                  </td>
+        <>
+          <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+            <div style={{ position: 'relative', flex: 1, maxWidth: '500px' }}>
+              <input
+                type="text"
+                placeholder="🔍 Buscar en historial por cliente, cédula o periodo..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                style={{
+                  width: '100%', padding: '0.75rem 1.2rem 0.75rem 2.5rem', borderRadius: '30px',
+                  border: '1px solid var(--border-color)', fontSize: '0.95rem',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)', outline: 'none'
+                }}
+              />
+              <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                📜
+              </span>
+            </div>
+            {busqueda && (
+              <button className="btn btn-outline" onClick={() => setBusqueda('')} style={{ borderRadius: '30px', padding: '0 1.2rem' }}>
+                Limpiar
+              </button>
+            )}
+          </div>
+
+          <div className="table-container" style={{ boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+            <table className="table">
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc' }}>
+                  <th>Fecha de Pago</th>
+                  <th>Cliente Propietario</th>
+                  <th>Concepto / Rubro</th>
+                  <th>Monto Pagado ($)</th>
+                  <th>Estado</th>
+                  <th>Comprobante Oficial</th>
                 </tr>
-              ) : (
-                deudas.map((deuda, idx) => (
-                  <tr key={`${deuda.tipo}-${deuda.id_original}-${idx}`}>
-                    <td>{new Date(deuda.fecha).toLocaleDateString()}</td>
-                    <td>
-                      <strong>{deuda.cliente_nombre}</strong><br/>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{deuda.cliente_cedula}</span>
-                    </td>
-                    <td>
-                      {deuda.tipo === 'multa' ? (
-                        <span style={{ color: 'var(--danger-color)', fontWeight: 'bold' }}>[MULTA] </span>
-                      ) : (
-                        <span style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>[AGUA] </span>
-                      )}
-                      {deuda.concepto}
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1.1rem' }}>
-                        ${deuda.monto}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${deuda.estado === 'pagado' ? 'badge-success' : deuda.estado === 'pendiente' ? 'badge-danger' : 'badge-warning'}`}>
-                        {deuda.estado}
-                      </span>
-                    </td>
-                    <td>
-                      {deuda.estado === 'pendiente' && (
-                        <button className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => abrirModalPago(deuda)}>
-                          Cobrar
-                        </button>
-                      )}
-                      {deuda.estado === 'pagado' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--success-color)' }}>
-                            Pagado: {new Date(deuda.fecha_pago || '').toLocaleDateString()}
-                          </span>
-                          <a 
-                            href={`/comprobante/${deuda.tipo === 'servicio' ? 'agua' : 'multa'}/${deuda.id_original}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="btn btn-outline" 
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
-                          >
-                            🖨️ Imprimir Recibo
-                          </a>
-                        </div>
-                      )}
+              </thead>
+              <tbody>
+                {listaPagadosFiltrada.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📭</div>
+                      <strong style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'block' }}>Sin Recibos Pagados en el Historial</strong>
+                      <span style={{ fontSize: '0.95rem' }}>No se han encontrado cobros pagados y finalizados que coincidan con la búsqueda.</span>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  listaPagadosFiltrada.map((deuda, idx) => (
+                    <tr key={`${deuda.tipo}-${deuda.id_original}-${idx}`}>
+                      <td>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                          {deuda.fecha_pago ? new Date(deuda.fecha_pago).toLocaleDateString() : new Date(deuda.fecha).toLocaleDateString()}
+                        </strong>
+                        <br/>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Emisión: {new Date(deuda.fecha).toLocaleDateString()}</span>
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '1.02rem', color: 'var(--primary-color)' }}>{deuda.cliente_nombre}</strong><br/>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{deuda.cliente_cedula || 'Sin Cédula'}</span>
+                      </td>
+                      <td>
+                        {deuda.tipo === 'multa' ? (
+                          <span className="badge badge-danger" style={{ fontSize: '0.75rem', marginRight: '0.5rem', backgroundColor: '#fee2e2', color: '#991b1b', padding: '0.2rem 0.5rem' }}>MULTA</span>
+                        ) : (
+                          <span className="badge badge-primary" style={{ fontSize: '0.75rem', marginRight: '0.5rem', backgroundColor: '#e0e7ff', color: '#3730a3', padding: '0.2rem 0.5rem' }}>AGUA</span>
+                        )}
+                        <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{deuda.concepto}</span>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 800, color: 'var(--success-color)', fontSize: '1.2rem' }}>
+                          ${Number(deuda.monto).toFixed(2)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge badge-success" style={{ fontWeight: 700, padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                          ✓ Pagado
+                        </span>
+                      </td>
+                      <td>
+                        <a 
+                          href={`/comprobante/${deuda.tipo === 'servicio' ? 'agua' : 'multa'}/${deuda.id_original}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="btn btn-outline" 
+                          style={{ padding: '0.45rem 1.1rem', fontSize: '0.88rem', borderRadius: '30px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' }}
+                        >
+                          🖨️ Re-Imprimir Recibo
+                        </a>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* MODAL NUEVO: PAGO GRUPAL Y SELECCIONABLE CON CHECKBOXES POR CLIENTE */}
