@@ -46,12 +46,15 @@ export default function ComprobanteView({ data, tipo }: { data: any, tipo: 'agua
     return () => { document.head.removeChild(style); }
   }, []);
 
-  if (!data) return <div style={{ padding: '2rem' }}>Comprobante no encontrado</div>;
+  const registros = Array.isArray(data) ? data : [data];
+  const primerRegistro = registros[0];
+  if (!primerRegistro) return <div style={{ padding: '2rem' }}>Comprobante no encontrado</div>;
 
   const isAgua = tipo === 'agua';
-  const cliente = isAgua ? data.clientes : data.clientes;
-  const monto = isAgua ? data.monto_total : data.monto_generado;
-  const fecha = isAgua ? data.fecha_pago : data.fecha_pago;
+  const cliente = primerRegistro.clientes;
+  const montoTotal = registros.reduce((acc, r) => acc + Number(isAgua ? (r.monto_total || 0) : (r.monto_generado || 0)), 0);
+  const fecha = primerRegistro.fecha_pago || primerRegistro.created_at || new Date().toISOString();
+  const serieIds = registros.map(r => String(r.id).padStart(5, '0')).join(' / ');
 
   // Renderiza el contenido de un solo recibo
   const ReceiptContent = ({ titulo }: { titulo: string }) => (
@@ -69,80 +72,88 @@ export default function ComprobanteView({ data, tipo }: { data: any, tipo: 'agua
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <h1 style={{ margin: 0, color: 'var(--danger-color)', fontSize: '1.2rem' }}>COMPROBANTE</h1>
-          <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#000' }}>Nº {String(data.id).padStart(6, '0')}</div>
+          <h1 style={{ margin: 0, color: isAgua ? 'var(--primary-color)' : 'var(--danger-color)', fontSize: '1.2rem' }}>
+            {isAgua ? 'RECIBO AGUA' : 'RECIBO MULTAS'}
+          </h1>
+          <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#000' }}>Nº {serieIds}</div>
           <div style={{ fontSize: '0.8rem', color: '#555' }}>{new Date(fecha).toLocaleDateString()}</div>
-          <div style={{ fontSize: '0.75rem', color: '#000', fontWeight: 'bold', marginTop: '0.2rem', padding: '0.2rem 0.5rem', border: '1px solid #000', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.75rem', color: '#000', fontWeight: 'bold', marginTop: '0.2rem', padding: '0.2rem 0.5rem', border: '1px solid #000', borderRadius: '4px', display: 'inline-block' }}>
             {titulo}
           </div>
         </div>
       </div>
 
       {/* Datos del Cliente */}
-      <div style={{ marginBottom: '1rem', border: '1px solid #ccc', padding: '0.5rem', borderRadius: '4px' }}>
+      <div style={{ marginBottom: '1rem', border: '1px solid #ccc', padding: '0.6rem', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem' }}>
           <div><strong>Nombres:</strong> {cliente?.nombre} {cliente?.apellido}</div>
-          <div><strong>Cédula/RUC:</strong> {cliente?.cedula}</div>
+          <div><strong>Cédula/RUC:</strong> {cliente?.cedula || 'N/A'}</div>
           <div><strong>Dirección:</strong> {cliente?.direccion || 'N/A'}</div>
-          {isAgua && <div><strong>Medidor:</strong> {data.consumos?.medidores?.numero}</div>}
+          {isAgua && <div><strong>Medidor(es):</strong> {Array.from(new Set(registros.map((r: any) => r.consumos?.medidores?.numero))).join(', ')}</div>}
         </div>
       </div>
 
-      {/* Detalle */}
+      {/* Detalle de rubros pagados */}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem', fontSize: '0.9rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #000', borderBottom: '2px solid #000' }}>
-            <th style={{ padding: '0.5rem', textAlign: 'left' }}>DESCRIPCIÓN</th>
-            <th style={{ padding: '0.5rem', textAlign: 'right' }}>SUBTOTAL</th>
+          <tr style={{ backgroundColor: '#e2e8f0', borderTop: '2px solid #000', borderBottom: '2px solid #000' }}>
+            <th style={{ padding: '0.6rem', textAlign: 'left' }}>DESCRIPCIÓN / RUBROS PAGADOS</th>
+            <th style={{ padding: '0.6rem', textAlign: 'right', width: '120px' }}>SUBTOTAL</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-              {isAgua ? (
-                <>
-                  <div>Servicio de Agua Potable</div>
-                  <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                    Consumo: {data.consumos?.consumo_calculado} m³ ({data.consumos?.mes_anio})
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>Multa / Penalización</div>
-                  <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                    Motivo: {data.motivo}
-                  </div>
-                </>
-              )}
-            </td>
-            <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee', textAlign: 'right' }}>
-              $ {Number(monto).toFixed(2)}
-            </td>
-          </tr>
+          {registros.map((reg: any, idx: number) => {
+            const montoFila = isAgua ? reg.monto_total : reg.monto_generado;
+            return (
+              <tr key={`${reg.id}-${idx}`} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '0.6rem' }}>
+                  {isAgua ? (
+                    <>
+                      <div style={{ fontWeight: 600, color: '#1e293b' }}>Servicio de Agua Potable — <strong>{reg.consumos?.mes_anio}</strong></div>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                        Consumo facturado: {reg.consumos?.consumo_calculado} m³ (Medidor: {reg.consumos?.medidores?.numero || 'S/N'})
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: 600, color: '#991b1b' }}>Sanción / Multa — <strong>{String(reg.categoria_multa || 'MORA').toUpperCase()}</strong></div>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                        Motivo: {reg.motivo}
+                      </div>
+                    </>
+                  )}
+                </td>
+                <td style={{ padding: '0.6rem', textAlign: 'right', fontWeight: 600 }}>
+                  $ {Number(montoFila || 0).toFixed(2)}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
         <tfoot>
-          <tr>
-            <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 'bold', fontSize: '1rem' }}>TOTAL A PAGAR:</td>
-            <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 'bold', fontSize: '1rem', color: 'var(--primary-color)' }}>
-              $ {Number(monto).toFixed(2)}
+          <tr style={{ borderTop: '2px solid #000', backgroundColor: '#f1f5f9' }}>
+            <td style={{ padding: '0.7rem', textAlign: 'right', fontWeight: 800, fontSize: '1.05rem' }}>TOTAL RECIBIDO:</td>
+            <td style={{ padding: '0.7rem', textAlign: 'right', fontWeight: 800, fontSize: '1.15rem', color: 'var(--primary-color)' }}>
+              $ {Number(montoTotal).toFixed(2)}
             </td>
           </tr>
         </tfoot>
       </table>
 
       {/* Firmas */}
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: 'auto', paddingTop: '1rem', fontSize: '0.8rem' }}>
-        <div style={{ textAlign: 'center', borderTop: '1px solid #000', width: '200px', paddingTop: '0.5rem' }}>
-          <strong>Firma Cliente</strong><br/>
-          C.I: {cliente?.cedula}
+      <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: 'auto', paddingTop: '1.5rem', fontSize: '0.8rem' }}>
+        <div style={{ textAlign: 'center', borderTop: '1px solid #000', width: '220px', paddingTop: '0.5rem' }}>
+          <strong>Firma del Cliente</strong><br/>
+          C.I: {cliente?.cedula || '........................'}
         </div>
-        <div style={{ textAlign: 'center', borderTop: '1px solid #000', width: '200px', paddingTop: '0.5rem' }}>
-          <strong>Recaudador / Cajero</strong><br/>
-          Junta Administradora
+        <div style={{ textAlign: 'center', borderTop: '1px solid #000', width: '220px', paddingTop: '0.5rem' }}>
+          <strong>Recaudación y Ventanilla</strong><br/>
+          Junta Administradora de Agua
         </div>
       </div>
     </div>
   );
+
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>

@@ -2,8 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function getComprobanteAgua(id: string) {
+export async function getComprobanteAgua(idsParam: string) {
   const supabase = await createClient();
+  const idArray = idsParam.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+  if (idArray.length === 0) return null;
+
   const { data, error } = await supabase
     .from('cobros')
     .select(`
@@ -22,29 +25,33 @@ export async function getComprobanteAgua(id: string) {
         )
       )
     `)
-    .eq('id', id)
-    .single();
+    .in('id', idArray)
+    .order('fecha_emision', { ascending: true });
 
-  if (error) return null;
+  if (error || !data || data.length === 0) return null;
   return data;
 }
 
-export async function getComprobanteMulta(id: string) {
+export async function getComprobanteMulta(idsParam: string) {
   const supabase = await createClient();
+  const idArray = idsParam.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+  if (idArray.length === 0) return null;
+
   const { data, error } = await supabase
     .from('multas')
     .select(`
       *,
-      clientes (
+      clientes:cliente_id (
         nombre,
         apellido,
         cedula,
         direccion
       )
     `)
-    .eq('id', id)
-    .single();
+    .in('id', idArray)
+    .order('fecha_generacion', { ascending: true });
 
-  if (error) return null;
+  if (error || !data || data.length === 0) return null;
   return data;
 }
+

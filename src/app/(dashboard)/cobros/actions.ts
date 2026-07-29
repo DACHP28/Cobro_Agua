@@ -103,3 +103,43 @@ export async function registrarPago(cobroId: number, metodoPago: string, referen
   revalidatePath('/cobros')
   return { error: null }
 }
+
+export async function registrarPagoMultiple(
+  cobroIds: number[], 
+  multaIds: number[], 
+  metodoPago: string, 
+  referenciaPago: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const fechaHoy = new Date().toISOString();
+
+  if (cobroIds && cobroIds.length > 0) {
+    const { error: errCobros } = await supabase
+      .from('cobros')
+      .update({
+        estado: 'pagado',
+        metodo_pago: metodoPago,
+        referencia_pago: referenciaPago || null,
+        fecha_pago: fechaHoy
+      })
+      .in('id', cobroIds);
+    if (errCobros) return { error: 'Error al pagar servicios de agua: ' + errCobros.message };
+  }
+
+  if (multaIds && multaIds.length > 0) {
+    const { error: errMultas } = await supabase
+      .from('multas')
+      .update({
+        estado: 'pagado',
+        fecha_pago: fechaHoy
+      })
+      .in('id', multaIds);
+    if (errMultas) return { error: 'Error al pagar multas: ' + errMultas.message };
+  }
+
+  revalidatePath('/cobros');
+  revalidatePath('/multas');
+  revalidatePath('/dashboard');
+  return { error: null };
+}
+
