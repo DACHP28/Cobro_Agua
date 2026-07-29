@@ -7,20 +7,24 @@ export async function getReporteCaja(fechaInicio: string, fechaFin: string) {
   const supabase = await createClient()
 
   // Ingresos por Cobros (Agua)
-  const { data: cobrosData } = await supabase
+  const { data: cobrosData, error: errCobros } = await supabase
     .from('cobros')
-    .select('*, clientes:cliente_id(nombre, apellido)')
+    .select('*, clientes:cliente_id(nombre, apellido, cedula), consumos:consumo_id(mes_anio, consumo_calculado)')
     .eq('estado', 'pagado')
     .gte('fecha_pago', fechaInicio)
     .lte('fecha_pago', fechaFin + 'T23:59:59Z');
 
+  if (errCobros) console.error('Error reportes cobros:', errCobros);
+
   // Ingresos por Multas
-  const { data: multasData } = await supabase
+  const { data: multasData, error: errMultas } = await supabase
     .from('multas')
-    .select('*, clientes:cliente_id(nombre, apellido)')
+    .select('*, clientes:cliente_id(nombre, apellido, cedula)')
     .eq('estado', 'pagado')
     .gte('fecha_pago', fechaInicio)
     .lte('fecha_pago', fechaFin + 'T23:59:59Z');
+
+  if (errMultas) console.error('Error reportes multas:', errMultas);
 
   // Egresos
   const { data: egresosData } = await supabase
